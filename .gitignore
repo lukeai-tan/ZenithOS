@@ -1,0 +1,16 @@
+cat > .gitignore << 'EOF'
+# Build artifacts
+*.o
+*.iso
+myos
+
+# ISO staging directory
+isodir/
+
+# Toolchain sources and builds 
+binutils-*/
+gcc-*/
+*.tar.gz
+build-binutils/
+build-gcc/
+EOF

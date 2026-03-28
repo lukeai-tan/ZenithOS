@@ -10,7 +10,8 @@ OBJS = build/boot.o \
        build/terminal.o \
 	   build/gdt.o \
        build/idt.o \
-       build/keyboard.o
+       build/keyboard.o \
+	   build/shell.o
 
 .PHONY: all clean run
 
@@ -44,6 +45,10 @@ build/idt.o: cpu/idt.cpp
 
 # Drivers
 build/keyboard.o: drivers/keyboard.cpp
+	mkdir -p build
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+build/shell.o: kernel/shell.cpp
 	mkdir -p build
 	$(CC) -c $< -o $@ $(CFLAGS)
 

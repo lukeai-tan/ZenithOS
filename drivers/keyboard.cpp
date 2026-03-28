@@ -2,7 +2,7 @@
 #include "ports.h"
 #include "terminal.h"
 #include "idt.h"
-
+#include "shell.h"
 
 extern "C" void keyboard_isr(void);
 
@@ -57,8 +57,7 @@ extern "C" void keyboard_handler(void) {
     if (scancode < sizeof(scancode_map)) {
         char c = scancode_map[scancode];
         if (c) {
-            key_buffer[buf_head++] = c;
-            terminal_putchar(c);
+            shell_handle_char(c);
         }
     }
     outb(PIC1_COMMAND, PIC_EOI);

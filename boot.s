@@ -107,3 +107,37 @@ Set the size of the _start symbol to the current location '.' minus its start.
 This is useful when debugging or when you implement call tracing.
 */
 .size _start, . - _start
+
+.global idt_load
+idt_load:
+    mov 4(%esp), %eax
+    lidt (%eax)
+    ret
+
+.global keyboard_isr
+keyboard_isr:
+    pusha
+    call keyboard_handler
+    popa
+    iret
+
+.global default_isr
+default_isr:
+    pusha
+    call default_handler
+    popa
+    iret
+
+.global gdt_load
+gdt_load:
+    mov 4(%esp), %eax
+    lgdt (%eax)
+    mov $0x10, %ax      # data segment selector
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %ax, %ss
+    ljmp $0x08, $gdt_flush   # far jump to reload CS
+gdt_flush:
+    ret

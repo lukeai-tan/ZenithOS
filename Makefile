@@ -1,25 +1,57 @@
 TARGET = i686-elf
 CC = $(TARGET)-gcc
 AS = $(TARGET)-as
-LD = $(TARGET)-ld
 
-CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti
+CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti \
+         -I./kernel -I./drivers -I./cpu -I./terminal
 
-OBJS = boot.o kernel.o
+OBJS = build/boot.o \
+       build/kernel.o \
+       build/terminal.o \
+	   build/gdt.o \
+       build/idt.o \
+       build/keyboard.o
 
 .PHONY: all clean run
 
 all: myos.iso
 
-boot.o: boot.s
-	$(AS) boot.s -o boot.o
+# Boot assembly
+build/boot.o: boot.s
+	mkdir -p build
+	$(AS) boot.s -o build/boot.o
 
-kernel.o: kernel.cpp
-	$(CC) -c kernel.cpp -o kernel.o $(CFLAGS)
+# Kernel
+build/kernel.o: kernel/kernel.cpp
+	mkdir -p build
+	$(CC) -c $< -o $@ $(CFLAGS)
 
+# Terminal
+build/terminal.o: terminal/terminal.cpp
+	mkdir -p build
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+# CPU / GDT
+
+build/gdt.o: cpu/gdt.cpp
+	mkdir -p build
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+# CPU / IDT
+build/idt.o: cpu/idt.cpp
+	mkdir -p build
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+# Drivers
+build/keyboard.o: drivers/keyboard.cpp
+	mkdir -p build
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+# Link
 myos: $(OBJS) linker.ld
 	$(CC) -T linker.ld -o myos $(OBJS) -ffreestanding -O2 -nostdlib -lgcc
 
+# ISO
 myos.iso: myos
 	mkdir -p isodir/boot/grub
 	cp myos isodir/boot/myos
@@ -30,5 +62,5 @@ run: myos.iso
 	qemu-system-i386 -cdrom myos.iso
 
 clean:
-	rm -f *.o myos myos.iso
-	rm -rf isodir
+	rm -f myos myos.iso
+	rm -rf build isodir

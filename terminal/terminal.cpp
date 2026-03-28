@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "ports.h"
 
 #define VGA_WIDTH  80
 #define VGA_HEIGHT 25
@@ -16,6 +17,14 @@ size_t strlen(const char* str) {
     return len;
 }
 
+static void terminal_update_cursor(void) {
+    uint16_t pos = terminal_row * VGA_WIDTH + terminal_column;
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t)(pos & 0xFF));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
+
 void terminal_initialize(void) {
     terminal_row    = 0;
     terminal_column = 0;
@@ -27,6 +36,7 @@ void terminal_initialize(void) {
             terminal_buffer[y * VGA_WIDTH + x] = vga_entry(' ', terminal_color);
         }
     }
+    terminal_update_cursor();
 }
 
 void terminal_setcolor(uint8_t color) {
@@ -57,6 +67,7 @@ void terminal_putchar(char c) {
             terminal_scroll();
             terminal_row = VGA_HEIGHT - 1;
         }
+        terminal_update_cursor();
         return;
     }
 
@@ -65,6 +76,7 @@ void terminal_putchar(char c) {
             terminal_column--;
             terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
         }
+        terminal_update_cursor();
         return;
     }
 
@@ -76,6 +88,7 @@ void terminal_putchar(char c) {
             terminal_row = VGA_HEIGHT - 1;
         }
     }
+    terminal_update_cursor();
 }
 
 void terminal_write(const char* data, size_t size) {

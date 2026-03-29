@@ -3,7 +3,7 @@ CC = $(TARGET)-gcc
 AS = $(TARGET)-as
 
 CFLAGS = -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti \
-         -I./kernel -I./drivers -I./cpu -I./terminal
+         -I./kernel -I./drivers -I./cpu -I./terminal -I./lib
 
 OBJS = build/boot.o \
        build/kernel.o \
@@ -11,7 +11,9 @@ OBJS = build/boot.o \
 	   build/gdt.o \
        build/idt.o \
        build/keyboard.o \
-	   build/shell.o
+	   build/shell.o \
+	   build/timer.o \
+	   build/string.o
 
 .PHONY: all clean run
 
@@ -49,6 +51,14 @@ build/keyboard.o: drivers/keyboard.cpp
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 build/shell.o: kernel/shell.cpp
+	mkdir -p build
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+build/timer.o: cpu/timer.cpp
+	mkdir -p build
+	$(CC) -c $< -o $@ $(CFLAGS)
+
+build/string.o: lib/string.cpp
 	mkdir -p build
 	$(CC) -c $< -o $@ $(CFLAGS)
 

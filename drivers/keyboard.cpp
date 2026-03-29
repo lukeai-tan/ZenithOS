@@ -40,8 +40,10 @@ void pic_init(void) {
     outb(0x21, 0x01);   // 8086 mode
     outb(0xA1, 0x01);
 
-    // mask all except IRQ1 (keyboard)
-    outb(0x21, 0xFD);   // 11111101 - only IRQ1 unmasked
+    // 11111100
+    // IRQ0 (timer)
+    // IRQ1 (keyboard)
+    outb(0x21, 0xFC);
     outb(0xA1, 0xFF);   // all PIC2 masked
 }
 

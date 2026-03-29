@@ -1,5 +1,6 @@
 #include "terminal.h"
 #include "ports.h"
+#include "string.h"
 
 #define VGA_WIDTH  80
 #define VGA_HEIGHT 25
@@ -9,13 +10,6 @@ static size_t terminal_row;
 static size_t terminal_column;
 static uint8_t terminal_color;
 static uint16_t* terminal_buffer;
-
-size_t strlen(const char* str) {
-    size_t len = 0;
-    while (str[len])
-        len++;
-    return len;
-}
 
 static void terminal_update_cursor(void) {
     uint16_t pos = terminal_row * VGA_WIDTH + terminal_column;

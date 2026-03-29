@@ -121,6 +121,13 @@ keyboard_isr:
     popa
     iret
 
+.global timer_isr
+timer_isr:
+    pusha
+    call timer_handler
+    popa
+    iret
+
 .global default_isr
 default_isr:
     pusha

@@ -1,5 +1,8 @@
 #include "shell.h"
 #include "terminal.h"
+#include "ports.h"
+#include "timer.h"
+#include "string.h"
 
 #define CMD_BUFFER_SIZE 256
 
@@ -12,18 +15,15 @@ static void shell_prompt(void) {
 }
 
 static void shell_execute(void) {
-    // compare command
-    auto strcmp = [](const char* a, const char* b) {
-        while (*a && *b && *a == *b) { a++; b++; }
-        return *a - *b;
-    };
-
     if (strcmp(cmd_buffer, "help") == 0) {
         terminal_writestring_colored("Commands:\n", VGA_COLOR_LIGHT_BROWN, VGA_COLOR_BLACK);
         terminal_writestring("  help    - show this message\n");
         terminal_writestring("  clear   - clear the screen\n");
         terminal_writestring("  echo    - echo back your input\n");
         terminal_writestring("  about   - about ZenithOS\n");
+        terminal_writestring("  uptime  - show time since boot\n");
+        terminal_writestring("  reboot  - reboot the system\n");
+        terminal_writestring("  halt    - halt the system\n");
     } else if (strcmp(cmd_buffer, "clear") == 0) {
         terminal_initialize();
     } else if (strcmp(cmd_buffer, "about") == 0) {
@@ -36,6 +36,29 @@ static void shell_execute(void) {
         terminal_putchar('\n');
     } else if (cmd_buffer[0] == '\0') {
         // empty command, just show prompt again
+    } else if (strcmp(cmd_buffer, "reboot") == 0) {
+        terminal_writestring_colored("Rebooting...\n", VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
+        // pulse the keyboard controller reset line
+        outb(0x64, 0xFE);
+    } else if (strcmp(cmd_buffer, "halt") == 0) {
+        terminal_writestring_colored("Halting system. Arrividerci!\n", VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
+        asm volatile("cli");   // disable interrupts
+        asm volatile("hlt");   // halt the CPU
+    } else if (strcmp(cmd_buffer, "uptime") == 0) {
+        char buf[32];
+        uint32_t seconds = timer_get_seconds();
+        uint32_t minutes = seconds / 60;
+        uint32_t hours   = minutes / 60;
+        seconds %= 60;
+        minutes %= 60;
+
+        terminal_writestring("Uptime: ");
+        itoa(hours, buf, 10);   terminal_writestring(buf);
+        terminal_writestring("h ");
+        itoa(minutes, buf, 10); terminal_writestring(buf);
+        terminal_writestring("m ");
+        itoa(seconds, buf, 10); terminal_writestring(buf);
+        terminal_writestring("s\n");
     } else {
         terminal_writestring_colored("Unknown command: ", VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
         terminal_writestring(cmd_buffer);

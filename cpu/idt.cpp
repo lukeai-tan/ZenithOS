@@ -27,7 +27,6 @@ void idt_init(void) {
         idt_set_gate(i, 0, 0, 0);
     
     idt_load((uint32_t)&idtp);
-    asm volatile("sti");
 }
 
 extern "C" void default_handler(void) {

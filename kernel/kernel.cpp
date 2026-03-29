@@ -3,6 +3,7 @@
 #include "idt.h"
 #include "keyboard.h"
 #include "shell.h"
+#include "timer.h"
 
 #if defined(__linux__)
 #error "You are not using a cross-compiler"
@@ -43,15 +44,19 @@ extern "C" void kernel_main(void) {
     terminal_initialize();
     print_banner();
     print_boot_messages();
-
+    // terminal_writestring("Before GDT\n");
     gdt_init();
+    // terminal_writestring("Before IDT\n");
     idt_init();
+    // terminal_writestring("Before keyboard\n");
     keyboard_init();
+    // terminal_writestring("Before timer\n");
+    timer_init();
+    // terminal_writestring("Before shell\n");
     shell_init();
+    
+    // enable interrupts only after everything is setup
+    asm volatile("sti");
 
-    terminal_writestring_colored("\nReady.\n", VGA_COLOR_WHITE, VGA_COLOR_BLACK);
-
-    while (1) {
-        asm volatile("hlt");
-    }
+    while (1) asm volatile("hlt");
 }

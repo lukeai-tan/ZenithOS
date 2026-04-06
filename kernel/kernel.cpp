@@ -4,6 +4,7 @@
 #include "keyboard.h"
 #include "shell.h"
 #include "timer.h"
+#include "multiboot.h"
 
 #if defined(__linux__)
 #error "You are not using a cross-compiler"
@@ -40,7 +41,7 @@ static void print_boot_messages(void) {
     terminal_writestring("Initializing keyboard...\n");
 }
 
-extern "C" void kernel_main(void) {
+extern "C" void kernel_main(uint32_t multiboot_info) {
     terminal_initialize();
     print_banner();
     print_boot_messages();
@@ -53,7 +54,7 @@ extern "C" void kernel_main(void) {
     // terminal_writestring("Before timer\n");
     timer_init();
     // terminal_writestring("Before shell\n");
-    shell_init();
+    shell_init((struct multiboot_info*) multiboot_info);
     
     // enable interrupts only after everything is setup
     asm volatile("sti");
